@@ -21,31 +21,35 @@ def spellcheck(word, max_cost, team_size)
     team = []
 
     walkers.each do |r|
-        nxt = r.todo.empty? ? "\0" : r.todo[0]
-        todo = r.todo.empty? ? "" : r.todo[1..-1]
+        #nxt = r.todo == "\n" ? "\n" : r.todo[0]
+        nxt = r.todo[0]
+        todo = r.todo == "\n" ? "\n" : r.todo[1..-1]
    
         r.road.t.each do |dst, road|
             if(nxt == dst) then
-                team.push(Rambler.new( todo, r.done + dst, r.cost, road))
+                team.push(Rambler.new( todo, r.done + dst, r.cost, road)) if nxt != "\n"
+                leaders.push(r) if nxt=="\n" 
             else
                 team.push(Rambler.new( todo, r.done + dst, r.cost + 1, road))
                 team.push(Rambler.new(r.todo, r.done + dst, r.cost + 1, road))
-
-                leaders.push(r) if nxt=="\0" && dst == "\n"
             end
         end
-        team.push(Rambler.new( todo, r.done, r.cost + 1, r.road)) if nxt
+        team.push(Rambler.new( todo, r.done, r.cost + 1, r.road)) if nxt #!= "\n"
     end
     walkers = team.select{ |r| r.cost < max_cost }.sort{ |a, b| b.chance <=> a.chance }[0..team_size]
   end
 
-  leaders.sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
+  if leaders.empty?
+     leaders 
+  else
+    leaders.sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
          .uniq!{|r| r.done}
          .sort!{|a,b| a.cost <=> b.cost}[0..10]
+  end
 end
 
 STDIN.each_line do |word|
-    print "#{word}\n", spellcheck(word.chomp("\n"), word.size/2, 512).map{ |r| "\t#{r.done} #{r.cost}" }.join("\n"), "\n"
+    print "#{word}\n", spellcheck(word, word.size/2, 512).map{ |r| "\t#{r.done} #{r.cost}" }.join("\n"), "\n"
 end
 
 
