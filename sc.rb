@@ -1,13 +1,13 @@
 Trie = Struct.new(:w, :t)
-$trie = Trie.new(0, {}) 
-def Add(dict, s)
-   dict.w += 1
-   c = s[0]
-   dict.t[c] ||= Trie.new(0, {})
-   (s == "\n") || Add( dict.t[c], s[1..-1] )
-end
 
-File.open(ARGV[0]).each { |word| Add( $trie, word ); }
+File.open(ARGV[0]).each do |word|
+   dict = $trie ||= Trie.new(0, {}) 
+
+   word.each_char do |c|
+      dict.w += 1
+      dict = dict.t[c] ||= Trie.new(0, {})
+   end
+end
 puts 'start!';
 
 Rambler = Struct.new(:todo, :done, :cost, :road) do
@@ -38,9 +38,10 @@ def spellcheck(word, max_cost, team_size)
     end
     walkers = team.select{ |r| r.cost < max_cost }.sort{ |a, b| b.chance <=> a.chance }[0..team_size]
   end
-  leaders.sort!{|a,b| a.done == b.done ? a.cost <=> b.cost : a.done <=> b.done}
+
+  leaders.sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
          .uniq!{|r| r.done}
-         .sort!{|a,b| a.cost <=> b.cost}
+         .sort!{|a,b| a.cost <=> b.cost}[0..10]
 end
 
 STDIN.each_line do |word|
