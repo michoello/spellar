@@ -18,12 +18,13 @@ def spellcheck(word, max_cost, team_size)
    leaders, walkers = [], [Rambler.new(word, "", 0, $trie)] 
 
    until walkers.empty? do; puts "Iteration #{walkers.size} #{leaders.size}"
-      walkers = walkers.inject([]) do |team, r|
+      walkers = walkers.map do |r|; team = []
          nxt  = r.todo.empty? ? "\n" : r.todo[0]
          todo = r.todo.empty? ? "" : r.todo[1..-1]
 
-         team << Rambler.new(todo, r.done + nxt, r.cost, r.road.t[nxt]) if nxt != "\n" && r.road.t.has_key?(nxt) # straight 
-         leaders << r                                                   if nxt == "\n" && r.road.t.has_key?("\n") # finish
+         if r.road.t.has_key?(nxt)
+            (nxt != "\n" ? team : leaders ) << Rambler.new(todo, r.done + nxt, r.cost, r.road.t[nxt]) 
+         end
 
          r.road.t.select { |x| x != nxt }.each do |dst, road|
             team << Rambler.new(todo, r.done + dst, r.cost + 1, road)           # replace 
@@ -31,7 +32,8 @@ def spellcheck(word, max_cost, team_size)
          end
          team << Rambler.new(todo, r.done, r.cost + 1, r.road) #if nxt != "\n"      # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
 
-      end .select{ |r| r.cost <= max_cost }
+      end .flatten
+          .select{ |r| r.cost <= max_cost }
           .sort{ |a, b| b.chance <=> a.chance }[0..team_size]
    end
 
@@ -41,5 +43,5 @@ def spellcheck(word, max_cost, team_size)
 end
 
 STDIN.each_line do |word|
-    print "#{word}\n", spellcheck(word, word.size/2, 512).map{ |r| "\t#{r.done} #{r.cost}" }.join("\n"), "\n"
+    print "#{word}\n", spellcheck(word, word.size/2, 512).map{ |r| "\t#{r.done} #{r.cost} [#{r.road.t.keys}]" }.join("\n"), "\n"
 end
