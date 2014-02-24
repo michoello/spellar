@@ -18,9 +18,7 @@ def spellcheck(word, max_cost, team_size)
    leaders, walkers = [], [Rambler.new(word, "", 0, $trie)] 
 
    until walkers.empty? do; puts "Iteration #{walkers.size} #{leaders.size}"
-      team = []
-
-      walkers.each do |r|
+      walkers = walkers.inject([]) do |team, r|
          nxt, todo = r.todo[0], r.todo[1..-1]
          todo = "\n" if todo.empty? 
 
@@ -33,9 +31,10 @@ def spellcheck(word, max_cost, team_size)
                 team << Rambler.new(r.todo, r.done + dst, r.cost + 1, road)          # insert
             end
          end
-         team << Rambler.new( todo, r.done, r.cost + 1, r.road) if nxt != "\n"        # delete
-      end
-      walkers = team.select{ |r| r.cost <= max_cost }.sort{ |a, b| b.chance <=> a.chance }[0..team_size]
+         team << Rambler.new( todo, r.done, r.cost + 1, r.road) #if nxt != "\n"      # delete
+
+      end .select{ |r| r.cost <= max_cost }
+          .sort{ |a, b| b.chance <=> a.chance }[0..team_size]
    end
 
    leaders.sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
