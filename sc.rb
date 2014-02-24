@@ -1,5 +1,10 @@
 Trie = Struct.new(:w, :t)
 
+#s = "what ze fuck"
+#print s.split("").inject("") {|acc, x| acc+x+x}
+#exit
+
+
 File.open(ARGV[0]).each do |word|
    dict = $trie ||= Trie.new(0, {}) 
 
@@ -14,28 +19,37 @@ Rambler = Struct.new(:todo, :done, :cost, :road) do
    def chance; Math.log((road.w+1)*(done.size+1))/(1<<cost); end
 end
 
-def spellcheck(word, max_cost, team_size)
-   leaders, walkers = [], [Rambler.new(word, "", 0, $trie)] 
+def rambiter(r)
+   team = []
+   nxt  = r.todo.empty? ? "\n" : r.todo[0]
+   todo = r.todo.empty? ? "" : r.todo[1..-1]
 
-   until walkers.empty? do; puts "Iteration #{walkers.size} #{leaders.size}"
-      walkers = walkers.map do |r|; team = []
-         nxt  = r.todo.empty? ? "\n" : r.todo[0]
-         todo = r.todo.empty? ? "" : r.todo[1..-1]
-
-         if r.road.t.has_key?(nxt)
-            (nxt != "\n" ? team : leaders ) << Rambler.new(todo, r.done + nxt, r.cost, r.road.t[nxt]) 
-         end
-
-         r.road.t.select { |x| x != nxt }.each do |dst, road|
-            team << Rambler.new(todo, r.done + dst, r.cost + 1, road)           # replace 
-            team << Rambler.new(r.todo, r.done + dst, r.cost + 1, road)          # insert
-         end
-         team << Rambler.new(todo, r.done, r.cost + 1, r.road) #if nxt != "\n"      # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
-
-      end .flatten
-          .select{ |r| r.cost <= max_cost }
-          .sort{ |a, b| b.chance <=> a.chance }[0..team_size]
+   if r.road.t.has_key?(nxt)
+      team << Rambler.new(todo, r.done + nxt, r.cost, r.road.t[nxt])     # staight or finish
    end
+
+   r.road.t.select { |x| x != nxt }.each do |dst, road|
+      team << Rambler.new(todo, r.done + dst, r.cost + 1, road)           # replace 
+      team << Rambler.new(r.todo, r.done + dst, r.cost + 1, road)          # insert
+   end
+   team << Rambler.new(todo, r.done, r.cost + 1, r.road) #if nxt != "\n"      # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
+   team
+end
+
+def temporary_stupid(leaders, walkers, max_cost, team_size)
+   until walkers.empty? do; 
+      puts "Iteration #{walkers.size} #{leaders.size}"
+      walkers = walkers.map {|r| rambiter(r)}.flatten
+                                             .select{|r| r.cost <= max_cost}
+                                             .sort{|a, b| b.chance <=> a.chance}[0..team_size]
+
+      leaders = leaders + walkers.select{ |r| r.road.t.keys.empty? }
+   end
+   return [leaders, walkers]
+end
+
+def spellcheck(word, max_cost, team_size)
+   leaders, walkers = temporary_stupid([], [Rambler.new(word, "", 0, $trie)], max_cost, team_size) 
 
    leaders.sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
           .uniq!{|r| r.done}
