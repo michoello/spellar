@@ -19,19 +19,17 @@ def spellcheck(word, max_cost, team_size)
 
    until walkers.empty? do; puts "Iteration #{walkers.size} #{leaders.size}"
       walkers = walkers.inject([]) do |team, r|
-         nxt, todo = r.todo[0], r.todo[1..-1]
-         todo = "\n" if todo.empty? 
+         nxt  = r.todo.empty? ? "\n" : r.todo[0]
+         todo = r.todo.empty? ? "" : r.todo[1..-1]
 
-         r.road.t.each do |dst, road|
-            if(nxt == dst) then
-                nxt != "\n" ? team << Rambler.new( todo, r.done + dst, r.cost, road) # straight
-                            : leaders << r                                           # finish
-            else
-                team << Rambler.new( todo, r.done + dst, r.cost + 1, road)           # replace 
-                team << Rambler.new(r.todo, r.done + dst, r.cost + 1, road)          # insert
-            end
+         team << Rambler.new(todo, r.done + nxt, r.cost, r.road.t[nxt]) if nxt != "\n" && r.road.t.has_key?(nxt) # straight 
+         leaders << r                                                   if nxt == "\n" && r.road.t.has_key?("\n") # finish
+
+         r.road.t.select { |x| x != nxt }.each do |dst, road|
+            team << Rambler.new(todo, r.done + dst, r.cost + 1, road)           # replace 
+            team << Rambler.new(r.todo, r.done + dst, r.cost + 1, road)          # insert
          end
-         team << Rambler.new( todo, r.done, r.cost + 1, r.road) #if nxt != "\n"      # delete
+         team << Rambler.new(todo, r.done, r.cost + 1, r.road) #if nxt != "\n"      # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
 
       end .select{ |r| r.cost <= max_cost }
           .sort{ |a, b| b.chance <=> a.chance }[0..team_size]
