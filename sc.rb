@@ -18,27 +18,26 @@ def rambiter(r)
    return r if r.road.t.keys.empty?
 
    team = r.road.t.map { |dst, road| Rambler.new(r.todo, r.done + dst, r.cost + 1, road) }         # insert
+   unless r.todo.empty?
+      team += r.road.t.map { |dst, road| Rambler.new(r.todo[1..-1], r.done + dst, r.cost + 1, road)}          # replace 
+      team << Rambler.new(r.todo[1..-1], r.done, r.cost + 1, r.road)  # delete   
 
-   return team if r.todo.empty?
+      if r.road.t.has_key?(r.todo[0])
+         team << Rambler.new(r.todo[1..-1], r.done + r.todo[0], r.cost, r.road.t[r.todo[0]])     # staight or finish
+      end
 
-   if r.road.t.has_key?(r.todo[0])
-      team << Rambler.new(r.todo[1..-1], r.done + r.todo[0], r.cost, r.road.t[r.todo[0]])     # staight or finish
    end
-
-   team += r.road.t.map { |dst, road| Rambler.new(r.todo[1..-1], r.done + dst, r.cost + 1, road)  }          # replace 
-   team << Rambler.new(r.todo[1..-1], r.done, r.cost + 1, r.road)  # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
+   team
 end
 
 def spellcheck(word, max_cost, team_size)
-   (stup = lambda do |walkers|; puts "Iteration #{walkers.size} #{walkers.select{|r| r.road.t.keys.empty?}.size}"
+   (onestep = lambda do |walkers|; puts "Iteration #{walkers.size} #{walkers.select{|r| r.road.t.keys.empty?}.size}"
       walkers2 = walkers.map{|r| rambiter(r)}.flatten
       walkers2.size == walkers.size ? # something new in the crowd
-         walkers : stup.call( walkers2.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size] ) 
+         walkers : onestep.call( walkers2.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size] ) 
    end)
        .call([Rambler.new(word, "", 0, $trie)])
-#       .sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }   # transform to map, there is no much results actually
-#       .uniq!{|r| r.done}
-       .sort!{|a,b| a.cost <=> b.cost}[0..10]
+       .inject({}) {|res, r| res[r.done] ||= r; res}.values[0..10]
 end
 
 STDIN.each_line do |word|
