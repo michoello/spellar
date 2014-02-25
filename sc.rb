@@ -11,6 +11,7 @@ end; puts 'Ready!';
 
 Rambler = Struct.new(:todo, :done, :cost, :road) do
    def chance; Math.log((road.w+1)*(done.size+1))/(1<<cost); end
+   #def chance; -todo.size - cost; end  # this also works!
 end
 
 def rambiter(r)
@@ -38,9 +39,9 @@ def spellcheck(word, max_cost, team_size)
          walkers : onestep.call( stepfwd.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}.uniq{|r| r.done+r.todo}[0..team_size] ) 
    end)
        .call([Rambler.new(word, "", 0, $trie)])
-       .inject({}) {|res, r| res[r.done] ||= r; res}.values[0..20]
+       .inject({}) {|res, r| res[r.done] ||= r; res}.values
 end
 
 STDIN.each_line do |word|
-    print "#{word}\n", spellcheck(word, word.size/2, 512).map{ |r| "\t#{r.done.chomp} #{r.cost}" }.join("\n"), "\n"
+    print "#{word}\n", spellcheck(word, word.size/2, 512)[0..20].map{ |r| "\t#{r.done.chomp} #{r.cost}" }.join("\n"), "\n"
 end
