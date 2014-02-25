@@ -36,8 +36,8 @@ def spellcheck(word, max_cost, team_size)
          walkers : stup.call( walkers2.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size] ) 
    end)
        .call([Rambler.new(word, "", 0, $trie)])
-       .sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }   # transform to map, there is no much results actually
-       .uniq!{|r| r.done}
+#       .sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }   # transform to map, there is no much results actually
+#       .uniq!{|r| r.done}
        .sort!{|a,b| a.cost <=> b.cost}[0..10]
 end
 
