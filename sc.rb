@@ -1,10 +1,5 @@
 Trie = Struct.new(:w, :t)
 
-h = { 'a' => 1, 'b' => 2}
-
-
-
-
 File.open(ARGV[0]).each do |word|
    dict = $trie ||= Trie.new(0, {}) 
 
@@ -35,19 +30,15 @@ def rambiter(r)
 end
 
 def spellcheck(word, max_cost, team_size)
-   stup = lambda do |walkers|; puts "Iteration #{walkers.size}"
+   (stup = lambda do |walkers|; puts "Iteration #{walkers.size} #{walkers.select{|r| r.road.t.keys.empty?}.size}"
       walkers2 = walkers.map{|r| rambiter(r)}.flatten
-      if ( walkers2.size > walkers.size ) # something new in the crowd
-         stup.call( walkers2.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size] )
-      else
-          walkers
-      end
-   end
-
-   stup.call([Rambler.new(word, "", 0, $trie)])
-          .sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
-          .uniq!{|r| r.done}
-          .sort!{|a,b| a.cost <=> b.cost}[0..10]
+      walkers2.size == walkers.size ? # something new in the crowd
+         walkers : stup.call( walkers2.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size] ) 
+   end)
+       .call([Rambler.new(word, "", 0, $trie)])
+       .sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }   # transform to map, there is no much results actually
+       .uniq!{|r| r.done}
+       .sort!{|a,b| a.cost <=> b.cost}[0..10]
 end
 
 STDIN.each_line do |word|
