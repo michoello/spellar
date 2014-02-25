@@ -1,5 +1,10 @@
 Trie = Struct.new(:w, :t)
 
+h = { 'a' => 1, 'b' => 2}
+
+
+
+
 File.open(ARGV[0]).each do |word|
    dict = $trie ||= Trie.new(0, {}) 
 
@@ -17,20 +22,16 @@ end
 def rambiter(r)
    return r if r.road.t.keys.empty?
 
-   team = []
-   nxt  = r.todo.empty? ? "\n" : r.todo[0]
-   todo = r.todo.empty? ? "" : r.todo[1..-1]
+   team = r.road.t.map { |dst, road| Rambler.new(r.todo, r.done + dst, r.cost + 1, road) }         # insert
 
-   if r.road.t.has_key?(nxt)
-      team << Rambler.new(todo, r.done + nxt, r.cost, r.road.t[nxt])     # staight or finish
+   return team if r.todo.empty?
+
+   if r.road.t.has_key?(r.todo[0])
+      team << Rambler.new(r.todo[1..-1], r.done + r.todo[0], r.cost, r.road.t[r.todo[0]])     # staight or finish
    end
 
-   r.road.t.select { |x| x != nxt }.each do |dst, road|
-      team << Rambler.new(todo, r.done + dst, r.cost + 1, road)           # replace 
-      team << Rambler.new(r.todo, r.done + dst, r.cost + 1, road)         # insert
-   end
-   team << Rambler.new(todo, r.done, r.cost + 1, r.road) if nxt != "\n"   # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
-   team
+   team += r.road.t.map { |dst, road| Rambler.new(r.todo[1..-1], r.done + dst, r.cost + 1, road)  }          # replace 
+   team << Rambler.new(r.todo[1..-1], r.done, r.cost + 1, r.road)  # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
 end
 
 def spellcheck(word, max_cost, team_size)
