@@ -36,21 +36,20 @@ def rambiter(r)
    team
 end
 
-def temporary_stupid(leaders, walkers, max_cost, team_size)
+def spellcheck(word, max_cost, team_size)
+   stup = lambda do |leaders, walkers|
       puts "Iteration #{walkers.size} #{leaders.size}"
 
       if walkers.empty?
          return [leaders, walkers]
+      else
+         walkers = walkers.map {|r| rambiter(r)}.flatten.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size]
+         leaders = leaders + walkers.select{ |r| r.road.t.keys.empty? }
+         return stup.call(leaders, walkers)
       end
+   end
 
-      walkers = walkers.map {|r| rambiter(r)}.flatten.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size]
-      leaders = leaders + walkers.select{ |r| r.road.t.keys.empty? }
-
-      return temporary_stupid(leaders, walkers, max_cost, team_size)
-end
-
-def spellcheck(word, max_cost, team_size)
-   leaders, walkers = temporary_stupid([], [Rambler.new(word, "", 0, $trie)], max_cost, team_size) 
+   leaders, walkers = stup.call([], [Rambler.new(word, "", 0, $trie)]) 
 
    leaders.sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
           .uniq!{|r| r.done}
