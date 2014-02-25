@@ -37,15 +37,16 @@ def rambiter(r)
 end
 
 def temporary_stupid(leaders, walkers, max_cost, team_size)
-   until walkers.empty? do; 
       puts "Iteration #{walkers.size} #{leaders.size}"
-      walkers = walkers.map {|r| rambiter(r)}.flatten
-                                             .select{|r| r.cost <= max_cost}
-                                             .sort{|a, b| b.chance <=> a.chance}[0..team_size]
 
+      if walkers.empty?
+         return [leaders, walkers]
+      end
+
+      walkers = walkers.map {|r| rambiter(r)}.flatten.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size]
       leaders = leaders + walkers.select{ |r| r.road.t.keys.empty? }
-   end
-   return [leaders, walkers]
+
+      return temporary_stupid(leaders, walkers, max_cost, team_size)
 end
 
 def spellcheck(word, max_cost, team_size)
