@@ -1,10 +1,5 @@
 Trie = Struct.new(:w, :t)
 
-#s = "what ze fuck"
-#print s.split("").inject("") {|acc, x| acc+x+x}
-#exit
-
-
 File.open(ARGV[0]).each do |word|
    dict = $trie ||= Trie.new(0, {}) 
 
@@ -20,6 +15,8 @@ Rambler = Struct.new(:todo, :done, :cost, :road) do
 end
 
 def rambiter(r)
+   return r if r.road.t.keys.empty?
+
    team = []
    nxt  = r.todo.empty? ? "\n" : r.todo[0]
    todo = r.todo.empty? ? "" : r.todo[1..-1]
@@ -30,28 +27,24 @@ def rambiter(r)
 
    r.road.t.select { |x| x != nxt }.each do |dst, road|
       team << Rambler.new(todo, r.done + dst, r.cost + 1, road)           # replace 
-      team << Rambler.new(r.todo, r.done + dst, r.cost + 1, road)          # insert
+      team << Rambler.new(r.todo, r.done + dst, r.cost + 1, road)         # insert
    end
-   team << Rambler.new(todo, r.done, r.cost + 1, r.road) #if nxt != "\n"      # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
+   team << Rambler.new(todo, r.done, r.cost + 1, r.road) if nxt != "\n"   # delete   # this line is tricky, it contains implicit return, as it is the last in inject block
    team
 end
 
 def spellcheck(word, max_cost, team_size)
-   stup = lambda do |leaders, walkers|
-      puts "Iteration #{walkers.size} #{leaders.size}"
-
-      if walkers.empty?
-         return [leaders, walkers]
+   stup = lambda do |walkers|; puts "Iteration #{walkers.size}"
+      walkers2 = walkers.map{|r| rambiter(r)}.flatten
+      if ( walkers2.size > walkers.size ) # something new in the crowd
+         stup.call( walkers2.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size] )
       else
-         walkers = walkers.map {|r| rambiter(r)}.flatten.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}[0..team_size]
-         leaders = leaders + walkers.select{ |r| r.road.t.keys.empty? }
-         return stup.call(leaders, walkers)
+          walkers
       end
    end
 
-   leaders, walkers = stup.call([], [Rambler.new(word, "", 0, $trie)]) 
-
-   leaders.sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
+   stup.call([Rambler.new(word, "", 0, $trie)])
+          .sort!{|a,b| (a.done <=> b.done) * 2 + (a.cost <=> b.cost) }
           .uniq!{|r| r.done}
           .sort!{|a,b| a.cost <=> b.cost}[0..10]
 end
