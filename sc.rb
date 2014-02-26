@@ -1,5 +1,4 @@
 Trie = Struct.new(:w, :t)
-
 File.open(ARGV[0]).each do |word|
    word.each_char.inject( $trie ||= Trie.new(0,{}) ) do |d, c|
        d.w +=1
@@ -39,5 +38,5 @@ def spellcheck(word, max_cost, team_size)
 end
 
 STDIN.each_line do |word|
-    print "#{word}\n", spellcheck(word, word.size/2, 512)[0..20].map{ |r| "\t#{r.done.chomp} #{r.cost}" }.join("\n"), "\n"
+    print spellcheck(word, word.size/2, 512)[0..20].map{ |r| "\t#{r.done.chomp} #{r.cost}" }.join("\n"), "\n"
 end
