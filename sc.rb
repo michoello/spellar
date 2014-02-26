@@ -1,17 +1,16 @@
 Trie = Struct.new(:w, :t)
 
 File.open(ARGV[0]).each do |word|
-   dict = $trie ||= Trie.new(0, {}) 
-
-   word.each_char do |c|
-      dict.w += 1
-      dict = dict.t[c] ||= Trie.new(0, {})
+   word.each_char.inject( $trie ||= Trie.new(0,{}) ) do |d, c|
+       d.w +=1
+       d.t[c] ||= Trie.new(0,{})
    end
 end; puts 'Ready!';
 
-Rambler = Struct.new(:todo, :done, :cost, :road) do
-   def chance; Math.log((road.w+1)*(done.size+1))/(1<<cost); end
-   #def chance; -todo.size - cost; end  # this also works!
+Rambler = Struct.new(:todo, :done, :cost, :road, :chance) do
+   def initialize(*args); super(*args) 
+      self.chance = Math.log((road.w+1)*(done.size+1))/(1<<cost); 
+   end 
 end
 
 def rambiter(r)
@@ -31,9 +30,7 @@ def rambiter(r)
 end
 
 def spellcheck(word, max_cost, team_size)
-   (onestep = lambda do |walkers|; puts "Iteration #{walkers.size} #{walkers.select{|r| r.road.t.keys.empty?}.size}"
-      print walkers.map {|r| "\t[" + r.done.tr("\n", "_") + "] [#{r.todo.chomp}] #{r.cost} #{r.chance}"}.join("\n"), "\n\n"
-
+   (onestep = lambda do |walkers|; 
       stepfwd = walkers.map{|r| rambiter(r)}.flatten
       stepfwd.size == walkers.size ? 
          walkers : onestep.call( stepfwd.select{|r| r.cost <= max_cost}.sort{|a, b| b.chance <=> a.chance}.uniq{|r| r.done+r.todo}[0..team_size] ) 
