@@ -37,6 +37,4 @@ def spellcheck(word, max_cost, team_size)
        .inject({}) {|res, r| res[r.done] ||= r; res}.values
 end
 
-STDIN.each_line do |word|
-    print spellcheck(word, word.size/2, 512)[0..20].map{ |r| "\t#{r.done.chomp} #{r.cost}" }.join("\n"), "\n"
-end
+STDIN.each_line { |word| print spellcheck(word, word.size/2, 512)[0..20].map{ |r| "\t#{r.done.chomp} #{r.cost}" }.join("\n"), "\n" }
