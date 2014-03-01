@@ -17,7 +17,7 @@ $grammar = [
    [ ['8'],         'D', lambda { |x|     x.to_i } ],
    [ ['9'],         'D', lambda { |x|     x.to_i } ],
 
-   [ ['D', 'D'],    'D', lambda { |x,y|   x*10 + y } ],
+   [ ['D', 'D'],    'F', lambda { |x,y|   x*10 + y } ],
    [ ['D'],         'F', lambda { |x|     x.to_i } ],
    [ ['F','*','T'], 'T', lambda { |x,_,y| x * y } ], 
    [ ['F','/','T'], 'T', lambda { |x,_,y| x / y } ],
