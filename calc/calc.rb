@@ -2,55 +2,62 @@ Token = Struct.new(:type, :value, :ast);
 
 #expr = "- 10 * 5 * ( 2 + - 4 ) - 20 / ( 2 * 10 ) + 8"
 #expr = "-10*(2+3)+2*-3"
-expr = "125+18"
+expr = "325+7*3+48"
 tokens = expr.split('').map { |el| Token.new(el, el) } 
 
 $grammar = [
-   [ ['0'],         'D', lambda { |x|     x.to_i } ],
-   [ ['1'],         'D', lambda { |x|     x.to_i } ],
-   [ ['2'],         'D', lambda { |x|     x.to_i } ],
-   [ ['3'],         'D', lambda { |x|     x.to_i } ],
-   [ ['4'],         'D', lambda { |x|     x.to_i } ],
-   [ ['5'],         'D', lambda { |x|     x.to_i } ],
-   [ ['6'],         'D', lambda { |x|     x.to_i } ],
-   [ ['7'],         'D', lambda { |x|     x.to_i } ],
-   [ ['8'],         'D', lambda { |x|     x.to_i } ],
-   [ ['9'],         'D', lambda { |x|     x.to_i } ],
+   [ ['0'],         'D', ->(x) {      x.to_i } ],
+   [ ['1'],         'D', ->(x) {     x.to_i } ],
+   [ ['2'],         'D', ->(x) {     x.to_i } ],
+   [ ['3'],         'D', ->(x) {     x.to_i } ],
+   [ ['4'],         'D', ->(x) {     x.to_i } ],
+   [ ['5'],         'D', ->(x) {     x.to_i } ],
+   [ ['6'],         'D', ->(x) {     x.to_i } ],
+   [ ['7'],         'D', ->(x) {     x.to_i } ],
+   [ ['8'],         'D', ->(x) {     x.to_i } ],
+   [ ['9'],         'D', ->(x) {     x.to_i } ],
 
-   [ ['D', 'D'],    'F', lambda { |x,y|   x*10 + y } ],
-   [ ['D'],         'F', lambda { |x|     x.to_i } ],
-   [ ['F','*','T'], 'T', lambda { |x,_,y| x * y } ], 
-   [ ['F','/','T'], 'T', lambda { |x,_,y| x / y } ],
-   [ ['-','F'],     'F', lambda { |_,x|  -x } ],
-   [ ['F'],         'T', lambda { |x|     x } ],
-   [ ['T','+','E'], 'E', lambda { |x,_,y| x + y} ],
-   [ ['T','-','E'], 'E', lambda { |x,_,y| x - y} ],
-   [ ['T'],         'E', lambda { |x|     x } ],
-   [ ['(','E',')'], 'F', lambda { |_,x,_| x } ]
+   [ ['D', 'D'],    'F', ->(x,y) {   x*10 + y } ],
+   [ ['F', 'D'],    'F', ->(x,y) {   x*10 + y } ],
+   [ ['D'],         'F', ->(x)   {   x } ],
+
+   [ ['F','*','T'], 'T', ->(x,_,y) { x * y } ], 
+   [ ['F','/','T'], 'T', ->(x,_,y) { x / y } ],
+   [ ['-','F'],     'F', ->(_,x)   {  -x } ],
+   [ ['F'],         'T', ->(x)     {   x } ],
+   [ ['T','+','E'], 'E', ->(x,_,y) { x + y} ],
+   [ ['T','-','E'], 'E', ->(x,_,y) { x - y} ],
+   [ ['T'],         'E', ->(x)     { x } ],
+   [ ['(','E',')'], 'F', ->(_,x,_) { x } ]
 ]
 
+#$i = 0
 
 def start_terms(types) 
    types.inject([]) { |acc, type| 
-      starts = $grammar.select {|rule| rule[1] == type}.map {|rule| rule[0][0] }.uniq
+      starts = $grammar.select {|rule| rule[1] == type}.map {|rule| rule[0][0] }.uniq.select { |start| start != type }
+#      print "[#{$i}] TTYPES #{type} STARTS #{starts}\n"
+#      $i += 1
+#      exit if $i > 100
       acc << (starts.empty? ? type : start_terms(starts))
       acc
    }.flatten
 end
 
 
-print "E: ", start_terms(['E']), "\n"
-print "T: ", start_terms(['T']), "\n"
-print "F: ", start_terms(['F']), "\n"
-print "D: ", start_terms(['D']), "\n"
-print "D-(: ", start_terms(['D', '-', '(']), "\n"
+#print "E: ", start_terms(['E']), "\n"
+#print "T: ", start_terms(['T']), "\n"
+#print "F: ", start_terms(['F']), "\n"
+#print "D: ", start_terms(['D']), "\n"
+#print "D-(: ", start_terms(['D', '-', '(']), "\n"
 
 #exit
 
 
 
 $grammar = $grammar.inject([]) do |acc_gr, rule|
-   rule << acc_gr.select { |bzrule| (rule[1] == bzrule[1]) && ((bzrule[0][0..rule[0].size-1] <=> rule[0]) == 0) }
+   #rule << acc_gr.select { |bzrule| (rule[1] == bzrule[1]) && ((bzrule[0][0..rule[0].size-1] <=> rule[0]) == 0) }
+   rule << acc_gr.select { |bzrule| ((bzrule[0][0..rule[0].size-1] <=> rule[0]) == 0) }
                  .map    { |bzrule| start_terms([ bzrule[0][rule[0].size] ]) }
                  .flatten
    acc_gr << rule
@@ -76,12 +83,12 @@ def ParseLR(tokens)
                if ( stack[ -from.size .. -1 ].map{|t| t.type} <=> from) == 0 
                then
                   unless (i < tokens.size-1) && lookahead.include?( tokens[i+1].type ) then
+                     value = todo.is_a?(Proc) ? todo.call( *stack[ -from.size .. -1 ].map(&:value) ) : 0 
+
                      print "#{i}: ", stack.map { |t| t.type  }.join(" "), "\n"
                      print "#{i}: ", stack.map { |t| t.value.to_s }.join(" "), "\t"
-                     print "\t#{from} -> #{to}"
+                     print "\t#{from} -> [#{to}] [#{value}]"
                      print "\n"
-
-                     value = todo.is_a?(Proc) ? todo.call( *stack[ -from.size .. -1 ].map(&:value) ) : 0 
 
                      stack[ -from.size .. -1 ] = [ Token.new( to, value, stack[ -from.size .. -1 ]) ]
                      reduced = true
@@ -90,12 +97,20 @@ def ParseLR(tokens)
                end
             end
          end
+         #if !reduced   #WRONG! think about it
+         #   print "ERROR marked <---: ", tokens.each_with_index.select {|tok, ii| ii < i }.map{|tok,_| tok.value }.join("")
+         #   print "<---", tokens.each_with_index.select {|tok, ii| ii >= i }.map{|tok,_| tok.value}.join(""), "\n"
+         #   exit
+         #end
       end while reduced
    end
+   stack
 end
 
 
-ParseLR(tokens)
+stack = ParseLR(tokens)
 
+print "#", stack.map { |t| t.type  }.join(" "), "\n"
+print " ", stack.map { |t| t.value.to_s }.join(" "), "\t"
 
 
