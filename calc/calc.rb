@@ -9,8 +9,9 @@ expr = "-10*(2+3)+2*-3"
 tokens = expr.split('').map { |el| Token.new(el, el) } 
 
 $grammar = [
-   Rule.new( ['0'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['1'],         'D', ->(x) { ->() { x[0].to_i } } ),
+   Rule.new( ['0'],         'D', "x[0].to_i" } } ),
+   Rule.new( ['1'],         'D', "x[0].to_i" } ),
+=begin
    Rule.new( ['2'],         'D', ->(x) { ->() { x[0].to_i } } ),
    Rule.new( ['3'],         'D', ->(x) { ->() { x[0].to_i } } ),
    Rule.new( ['4'],         'D', ->(x) { ->() { x[0].to_i } } ),
@@ -30,6 +31,7 @@ $grammar = [
    Rule.new( ['-','T'],     'T', ->(x) { ->() { -x[1].call } } ),
    Rule.new( ['T'],         'E', ->(x) { ->() { x[0].call } } ),
    Rule.new( ['(','E',')'], 'F', ->(x) { ->() { x[1].call } } )
+=end
 ]
 
 def start_terms(types) 
@@ -44,6 +46,7 @@ $grammar = $grammar.inject([]) do |acc_gr, rule|
    rule.lookahead = acc_gr.select { |bzrule| ((bzrule.from[0..rule.from.size-1] <=> rule.from) == 0) }
                    .map    { |bzrule| start_terms([ bzrule.from[rule.from.size] ]) }
                    .flatten
+   rule.todo = ->(x) { ->() { eval(rule.todo) } }
    acc_gr << rule
 end
 
