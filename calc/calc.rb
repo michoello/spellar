@@ -9,29 +9,27 @@ expr = "-10*(2+3)+2*-3"
 tokens = expr.split('').map { |el| Token.new(el, el) } 
 
 $grammar = [
-   Rule.new( ['0'],         'D', "x[0].to_i" } } ),
-   Rule.new( ['1'],         'D', "x[0].to_i" } ),
-=begin
-   Rule.new( ['2'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['3'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['4'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['5'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['6'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['7'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['8'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['9'],         'D', ->(x) { ->() { x[0].to_i } } ),
-   Rule.new( ['D', 'D'],    'F', ->(x) { ->() { x[0].call*10 + x[1].call } } ),
-   Rule.new( ['F', 'D'],    'F', ->(x) { ->() { x[0].call*10 + x[1].call } } ),
-   Rule.new( ['D'],         'F', ->(x) { ->() { x[0].call } } ),
-   Rule.new( ['F','*','T'], 'T', ->(x) { ->() { x[0].call * x[2].call } } ),
-   Rule.new( ['F','/','T'], 'T', ->(x) { ->() { x[0].call / x[2].call } } ),
-   Rule.new( ['F'],         'T', ->(x) { ->() { x[0].call } } ),
-   Rule.new( ['T','+','E'], 'E', ->(x) { ->() { x[0].call + x[2].call } } ),
-   Rule.new( ['T','-','E'], 'E', ->(x) { ->() { x[0].call - x[2].call } } ),
-   Rule.new( ['-','T'],     'T', ->(x) { ->() { -x[1].call } } ),
-   Rule.new( ['T'],         'E', ->(x) { ->() { x[0].call } } ),
-   Rule.new( ['(','E',')'], 'F', ->(x) { ->() { x[1].call } } )
-=end
+   Rule.new( ['0'],         'D', "x[0].to_i" ),
+   Rule.new( ['1'],         'D', "x[0].to_i" ),
+   Rule.new( ['2'],         'D', "x[0].to_i" ),
+   Rule.new( ['3'],         'D', "x[0].to_i" ),
+   Rule.new( ['4'],         'D', "x[0].to_i" ),
+   Rule.new( ['5'],         'D', "x[0].to_i" ),
+   Rule.new( ['6'],         'D', "x[0].to_i" ),
+   Rule.new( ['7'],         'D', "x[0].to_i" ),
+   Rule.new( ['8'],         'D', "x[0].to_i" ),
+   Rule.new( ['9'],         'D', "x[0].to_i" ),
+   Rule.new( ['D', 'D'],    'F', "x[0].call*10 + x[1].call" ),
+   Rule.new( ['F', 'D'],    'F', "x[0].call*10 + x[1].call" ),
+   Rule.new( ['D'],         'F', "x[0].call" ),
+   Rule.new( ['F','*','T'], 'T', "x[0].call * x[2].call" ),
+   Rule.new( ['F','/','T'], 'T', "x[0].call / x[2].call" ),
+   Rule.new( ['F'],         'T', "x[0].call" ),
+   Rule.new( ['T','+','E'], 'E', "x[0].call + x[2].call" ),
+   Rule.new( ['T','-','E'], 'E', "x[0].call - x[2].call" ),
+   Rule.new( ['-','T'],     'T', "-x[1].call" ),
+   Rule.new( ['T'],         'E', "x[0].call" ),
+   Rule.new( ['(','E',')'], 'F', "x[1].call" )
 ]
 
 def start_terms(types) 
@@ -46,7 +44,7 @@ $grammar = $grammar.inject([]) do |acc_gr, rule|
    rule.lookahead = acc_gr.select { |bzrule| ((bzrule.from[0..rule.from.size-1] <=> rule.from) == 0) }
                    .map    { |bzrule| start_terms([ bzrule.from[rule.from.size] ]) }
                    .flatten
-   rule.todo = ->(x) { ->() { eval(rule.todo) } }
+   rule.todo = eval "->(x) { ->() { " + rule.todo + " } }"
    acc_gr << rule
 end
 
