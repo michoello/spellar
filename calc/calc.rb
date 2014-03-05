@@ -2,7 +2,7 @@ Token = Struct.new(:type, :value, :ast)
 Rule = Struct.new(:from, :to, :todo, :lookahead)
 
 #expr = "- 10 * 5 * ( 2 + - 4 ) - 20 / ( 2 * 10 ) + 8"
-expr = "-10*(2+3)+2*-3"
+expr = "-10*(2+4!)+2*-3"
 #expr = "325+7*3+48"
 #expr = "-(100*14)"
 
@@ -22,6 +22,7 @@ $grammar = [
    Rule.new( ['D', 'D'],    'F', "x[0].call*10 + x[1].call" ),
    Rule.new( ['F', 'D'],    'F', "x[0].call*10 + x[1].call" ),
    Rule.new( ['D'],         'F', "x[0].call" ),
+   Rule.new( ['F','!'],     'F', "x[0].call * (x[0].call - 1)" ), # wrong but still
    Rule.new( ['F','*','T'], 'T', "x[0].call * x[2].call" ),
    Rule.new( ['F','/','T'], 'T', "x[0].call / x[2].call" ),
    Rule.new( ['F'],         'T', "x[0].call" ),
@@ -29,7 +30,7 @@ $grammar = [
    Rule.new( ['T','-','E'], 'E', "x[0].call - x[2].call" ),
    Rule.new( ['-','T'],     'T', "-x[1].call" ),
    Rule.new( ['T'],         'E', "x[0].call" ),
-   Rule.new( ['(','E',')'], 'F', "x[1].call" )
+   Rule.new( ['(','E',')'], 'F', "x[1].call " )
 ]
 
 def start_terms(types) 
@@ -50,6 +51,13 @@ end
 
 print $grammar.map { |rule| rule.from.to_s + " " + rule.to + " " + rule.lookahead.to_s }.join("\n"), "\n"
 
+
+def rule_is_ok(stack, rule, tokens, i)
+   ( stack.size >= rule.from.size ) &&
+   ( (stack[-rule.from.size..-1].map{|t| t.type} <=> rule.from) == 0 ) &&
+   ( (i == tokens.size-1) || !rule.lookahead.include?( tokens[i+1].type )) 
+end
+
 def ParseLR(tokens)
    stack = []
 
@@ -60,18 +68,12 @@ def ParseLR(tokens)
          reduced = false
          $grammar.each do |rule|
 
-            from, to, todo, lookahead = rule.to_a 
+            if rule_is_ok(stack, rule, tokens, i) then
 
-            if ( stack.size >= rule.from.size ) &&
-               ( (stack[-from.size..-1].map{|t| t.type} <=> from) == 0 ) &&
-               ( (i == tokens.size-1) || !lookahead.include?( tokens[i+1].type )) then
+               newtodo = rule.todo.call( stack[-rule.from.size..-1].map(&:value) )
+               stack[-rule.from.size..-1] = [ Token.new( rule.to, newtodo, stack[ -rule.from.size .. -1 ]) ]
 
-               stack[-from.size..-1] = [ Token.new( to, 
-                                                    #todo.call( *stack[-from.size..-1].map(&:value) ),
-                                                    todo.call( stack[-from.size..-1].map(&:value) ),
-                                                    stack[ -from.size .. -1 ]) ]
-
-               print "#{i}: ", stack.map { |t| t.type  }.join(" "), "\n", "#{i}: ", "\t\t#{from} -> [#{to}] \n"
+               print "#{i}: ", stack.map { |t| t.type  }.join(" "), "\t\t#{rule.from} -> [#{rule.to}] [#{newtodo.call}] \n"
 
                reduced = true
                break
