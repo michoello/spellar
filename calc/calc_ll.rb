@@ -4,7 +4,7 @@ Token = Struct.new(:type, :value, :ast);
 #expr = "-10*(2+3)+2*-3"
 expr = "325+7*3+48"
 
-expr = "32-7"
+expr = "123+45"
 tokens = expr.split('').map { |el| Token.new(el, el) } 
 
 $grammar = [
@@ -19,10 +19,11 @@ $grammar = [
    [ ['8'],         'D', ->(x) {     x.to_i } ],
    [ ['9'],         'D', ->(x) {     x.to_i } ],
 
-   [ ['D', 'D'],    'F', ->(x,y) {   x*10 + y } ],
    [ ['F', 'D'],    'F', ->(x,y) {   x*10 + y } ],
    [ ['D'],         'F', ->(x)   {   x } ],
+   [ ['F','+','F'], 'E', ->(x,_,y) { x + y} ],
 
+=begin
    [ ['T','*','F'], 'T', ->(x,_,y) { x * y } ], 
    [ ['T','/','F'], 'T', ->(x,_,y) { x / y } ],
    [ ['F'],         'T', ->(x)     {   x } ],
@@ -31,6 +32,7 @@ $grammar = [
    [ ['-','F'],     'F', ->(_,x)   {  -x } ],
    [ ['T'],         'E', ->(x)     { x } ],
    [ ['(','E',')'], 'F', ->(_,x,_) { x } ]
+=end
 ]
 
 def start_terms(types) 
@@ -48,110 +50,74 @@ $grammar = $grammar.inject([]) do |acc_gr, rule|
    acc_gr << rule
 end
 
-print "E: ", start_terms(['E']), "\n"
-print "T: ", start_terms(['T']), "\n"
-print "F: ", start_terms(['F']), "\n"
-print "D: ", start_terms(['D']), "\n"
-print "1: ", start_terms(['1']), "\n"
-
-
-print $grammar.map{ |x| x[0].to_s + " " + x[1] + " " + x[3].to_s }.join("\n"), "\n"
-print "\n\n"
+#print "E: ", start_terms(['E']), "\n"
+#print "T: ", start_terms(['T']), "\n"
+#print "F: ", start_terms(['F']), "\n"
+#print "D: ", start_terms(['D']), "\n"
+#print "1: ", start_terms(['1']), "\n"
+#print $grammar.map{ |x| x[0].to_s + " " + x[1] + " " + x[3].to_s }.join("\n"), "\n"
+#print "\n\n"
 
 
 def is_term(type)
    $grammar.select{|rule| rule[1] == type}.empty?
 end
 
+$i = 0
+
+
+$RULEST
 
 def ParseLL(stack, tokens, i=0)
+   print "#{$i} WE ARE CALLED WITH STACK: #{stack}\n"; s = gets; exit if s == "q\n"
 
+
+   stacktop = stack[-1]
    token = tokens[i]
 
-   ruleto = stack[-1]
-
-
-   if ( is_term(ruleto) ) then
-      i = i + 1
-      stack = sta
-
-   else
-      goodrules = $grammar.select {|rule| (rule[1] == ruleto) && start_terms([ rule[0][0] ]).include?(token.value) }.reverse
-
-      print "CUR: #{ruleto} TOKEN:#{token.value} ", goodrules.map{|r| r[0].to_s + " " + r[1]}.join(", "), "\n"
-
-      stack[-1..-1] = goodrules[0][0].reverse
-
-      print "STACK: ", stack, "\n"
-
-      if ( stack[-1] != ruleto ) then
-         print "SHJIT #{stack[-1]} #{ruleto}\n"
-         ParseLL(stack, tokens, i)
+   if is_term(stacktop) 
+   then
+       print "#{i}: TERM FOUND: #{tokens[i].value}\n"
+      if ( stacktop == tokens[i].value ) then
+         stack.pop
+         print "#{i}: TERM IS OK, RETURN TO UPPER LEVEL\n"
+         return i+1
+      else
+         print "#{i} TERM IS WRONG, EXPECTED [#{stacktop}]\n"
+         return -1
       end
-   end
+   else
+      rules = $grammar.select {|rule| (rule[1] == stacktop) && start_terms([ rule[0][0] ]).include?(token.value) }.reverse
 
-   stack
-end
+      stackorig = stack.clone
+      iorig = i
 
-stack = ['E']
-stack = ParseLL(stack, tokens)
-#stack = ParseLL(stack, tokens)
-#stack = ParseLL(stack, tokens)
-#stack = ParseLL(stack, tokens)
-#stack = ParseLL(stack, tokens)
-exit
+      print "WE HAVE ON TOP NOW #{stacktop}, and possible rules are ", rules.map{|rule| "[" + rule[0].to_s + "]"}.join(", "), "\n"
 
-print "#", stack.map { |t| t.type  }.join(" "), "\n"
-print " ", stack.map { |t| t.value.to_s }.join(" "), "\t"
+      rules.each do |rule|
+         print "#{i}: NOW RULE: #{rule}\nSTACK WAS: #{stack}\n"
+         stack.pop 
+         stack.push( *rule[0].reverse )
+         print "#{i}: STACK NOW: #{stack}\n"
 
-exit
-
-
-
-def ParseLR(tokens)
-   stack = []
-
-   tokens.each_with_index.map do |token, i|
-      print "#{i}: ", stack.map { |t| t.type }.join(" "), "\n"
-      stack << token
-
-      begin 
-
-         reduced = false
-         $grammar.each do |rule|
-            from, to, todo, lookahead = rule 
-            if ( stack.size >= from.size ) then
-               if ( stack[ -from.size .. -1 ].map{|t| t.type} <=> from) == 0 
-               then
-                  unless (i < tokens.size-1) && lookahead.include?( tokens[i+1].type ) then
-                     value = todo.is_a?(Proc) ? todo.call( *stack[ -from.size .. -1 ].map(&:value) ) : 0 
-
-                     print "#{i}: ", stack.map { |t| t.type  }.join(" "), "\n"
-                     print "#{i}: ", stack.map { |t| t.value.to_s }.join(" "), "\t"
-                     print "\t#{from} -> [#{to}] [#{value}]"
-                     print "\n"
-
-                     stack[ -from.size .. -1 ] = [ Token.new( to, value, stack[ -from.size .. -1 ]) ]
-                     reduced = true
-                     break
-                  end
-               end
+         while ( !stack.empty? && (i >= 0) ) do
+            print "#{i} CALL WITH NEXT ELT OF STACK #{stack}\n"
+            i = ParseLL( stack, tokens, i)
+            print "[#{i}]: STACK OOO: #{stack}\n"
+            if ( i == tokens.size ) then
+               print "FINITA!\n"
+               exit 
             end
+        
          end
-         #if !reduced   #WRONG! think about it
-         #   print "ERROR marked <---: ", tokens.each_with_index.select {|tok, ii| ii < i }.map{|tok,_| tok.value }.join("")
-         #   print "<---", tokens.each_with_index.select {|tok, ii| ii >= i }.map{|tok,_| tok.value}.join(""), "\n"
-         #   exit
-         #end
-      end while reduced
+         print "TRY NEXT RULE\n"
+
+         stack, i = stackorig.clone, iorig
+      end
+      print "NO MORE RULES AT THIS LEVEL\n"
    end
-   stack
+   print "LEVEL UP!\n"
+   return i
 end
 
-
-stack = ParseLR(tokens)
-
-print "#", stack.map { |t| t.type  }.join(" "), "\n"
-print " ", stack.map { |t| t.value.to_s }.join(" "), "\t"
-
-
+stack = ParseLL(['E'], tokens)
