@@ -69,33 +69,31 @@ $i = 0
 $RULEST
 
 def ParseLL(stack, tokens, i=0)
-   print "#{$i} WE ARE CALLED WITH STACK: #{stack}\n"; s = gets; exit if s == "q\n"
+#   print "#{$i} WE ARE CALLED WITH STACK: #{stack}\n"; s = gets; exit if s == "q\n"
 
 
-   stacktop = stack[-1]
-   token = tokens[i]
+#   stacktop = stack[-1]
+#   token = tokens[i]
 
-   if is_term(stacktop) 
+   if is_term(stack[-1]) 
    then
-       print "#{i}: TERM FOUND: #{tokens[i].value}\n"
-      if ( stacktop == tokens[i].value ) then
+      print "#{i}: TERM FOUND: #{tokens[i].value}\n"
+      if ( stack[-1] == tokens[i].value ) then
          stack.pop
-         print "#{i}: TERM IS OK, RETURN TO UPPER LEVEL\n"
+         print "#{i}: TERM IS OK, moving forward\n"
          return i+1
       else
-         print "#{i} TERM IS WRONG, EXPECTED [#{stacktop}]\n"
+         print "#{i} TERM IS WRONG, EXPECTED [#{stack[-1]}]\n"
          return -1
       end
    else
-      rules = $grammar.select {|rule| (rule[1] == stacktop) && start_terms([ rule[0][0] ]).include?(token.value) }.reverse
+      stackorig, iorig = stack.clone, i
 
-      stackorig = stack.clone
-      iorig = i
-
-      print "WE HAVE ON TOP NOW #{stacktop}, and possible rules are ", rules.map{|rule| "[" + rule[0].to_s + "]"}.join(", "), "\n"
+      rules = $grammar.select {|rule| (rule[1] == stack[-1]) && start_terms([ rule[0][0] ]).include?(tokens[i].value) }.reverse
+      print "WE HAVE ON TOP NOW #{stack[-1]}, and possible rules are ", rules.map{|rule| "[" + rule[0].to_s + "]"}.join(", "), "\n"
 
       rules.each do |rule|
-         print "#{i}: NOW RULE: #{rule}\nSTACK WAS: #{stack}\n"
+         print "#{i}: NOW RULE: [ #{rule[0]} #{rule[1]} ]\nSTACK WAS: #{stack}\n"
          stack.pop 
          stack.push( *rule[0].reverse )
          print "#{i}: STACK NOW: #{stack}\n"
@@ -103,6 +101,10 @@ def ParseLL(stack, tokens, i=0)
          while ( !stack.empty? && (i >= 0) ) do
             print "#{i} CALL WITH NEXT ELT OF STACK #{stack}\n"
             i = ParseLL( stack, tokens, i)
+
+
+
+
             print "[#{i}]: STACK OOO: #{stack}\n"
             if ( i == tokens.size ) then
                print "FINITA!\n"
