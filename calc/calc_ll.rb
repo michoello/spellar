@@ -21,7 +21,8 @@ $grammar = [
 
    [ ['F', 'D'],    'F', ->(x,y) {   x*10 + y } ],
    [ ['D'],         'F', ->(x)   {   x } ],
-   [ ['F','+','F'], 'E', ->(x,_,y) { x + y} ],
+   [ ['F','+','E'], 'E', ->(x,_,y) { x + y} ],
+#   [ ['F','-','E'], 'E', ->(x,_,y) { x + y} ],
 
 =begin
    [ ['T','*','F'], 'T', ->(x,_,y) { x * y } ], 
@@ -69,24 +70,9 @@ $i = 0
 $RULEST
 
 def ParseLL(stack, tokens, i=0)
-#   print "#{$i} WE ARE CALLED WITH STACK: #{stack}\n"; s = gets; exit if s == "q\n"
+   print "#{$i} WE ARE CALLED WITH STACK: #{stack}\n"; s = gets; exit if s == "q\n"
 
-
-#   stacktop = stack[-1]
-#   token = tokens[i]
-
-   if is_term(stack[-1]) 
-   then
-      print "#{i}: TERM FOUND: #{tokens[i].value}\n"
-      if ( stack[-1] == tokens[i].value ) then
-         stack.pop
-         print "#{i}: TERM IS OK, moving forward\n"
-         return i+1
-      else
-         print "#{i} TERM IS WRONG, EXPECTED [#{stack[-1]}]\n"
-         return -1
-      end
-   else
+   if 1 then
       stackorig, iorig = stack.clone, i
 
       rules = $grammar.select {|rule| (rule[1] == stack[-1]) && start_terms([ rule[0][0] ]).include?(tokens[i].value) }.reverse
@@ -98,17 +84,28 @@ def ParseLL(stack, tokens, i=0)
          stack.push( *rule[0].reverse )
          print "#{i}: STACK NOW: #{stack}\n"
 
-         while ( !stack.empty? && (i >= 0) ) do
+         while ( !stack.empty? ) do
             print "#{i} CALL WITH NEXT ELT OF STACK #{stack}\n"
-            i = ParseLL( stack, tokens, i)
 
-
-
+            if is_term(stack[-1]) 
+            then
+               print "#{i}: TERM FOUND: #{tokens[i].value}\n"
+               if ( stack[-1] == tokens[i].value ) then
+                  stack.pop
+                  print "#{i}: ---------------------------------------------- TERM IS OK, moving forward #{tokens[i].value}\n"
+                  i = i + 1
+               else
+                  print "#{i} TERM IS WRONG, EXPECTED [#{stack[-1]}]\n"
+                  break
+               end
+            else
+               i = ParseLL( stack, tokens, i)
+            end
 
             print "[#{i}]: STACK OOO: #{stack}\n"
             if ( i == tokens.size ) then
-               print "FINITA!\n"
-               exit 
+               print "FINITA: [#{rule[0]}] -> [#{rule[1]}]\n"
+               return i
             end
         
          end
@@ -118,7 +115,7 @@ def ParseLL(stack, tokens, i=0)
       end
       print "NO MORE RULES AT THIS LEVEL\n"
    end
-   print "LEVEL UP!\n"
+   print "LEVEL UP: #{i}!\n"
    return i
 end
 
