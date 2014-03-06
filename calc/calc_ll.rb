@@ -66,9 +66,6 @@ end
 
 $i = 0
 
-
-$RULEST
-
 def ParseLL(stack, tokens, i=0)
    stackorig, iorig = stack.clone, i
 
