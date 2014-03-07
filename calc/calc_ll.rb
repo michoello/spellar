@@ -89,7 +89,7 @@ def ParseLL(stack, tokens, i=0)
             end
          else
             ii = ParseLL(stack, tokens, i)
-            if ( i == ii )
+            if ( ii == -1 )
                 break
             end
             i = ii
@@ -105,7 +105,7 @@ def ParseLL(stack, tokens, i=0)
       stack, i = stackorig.clone, iorig
    end
 
-   return i # return -1?
+   return -1 
 end
 
 stack = ParseLL(['E'], tokens)
