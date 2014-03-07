@@ -4,7 +4,8 @@ Token = Struct.new(:type, :value, :ast);
 #expr = "-10*(2+3)+2*-3"
 expr = "325+7*3+48"
 
-expr = "123+45"
+#expr = "123+45+6789"
+expr = "12-34+11"
 tokens = expr.split('').map { |el| Token.new(el, el) } 
 
 $grammar = [
@@ -19,10 +20,10 @@ $grammar = [
    [ ['8'],         'D', ->(x) {     x.to_i } ],
    [ ['9'],         'D', ->(x) {     x.to_i } ],
 
-   [ ['F', 'D'],    'F', ->(x,y) {   x*10 + y } ],
+   [ ['D', 'F'],    'F', ->(x,y) {   x*10 + y } ],
    [ ['D'],         'F', ->(x)   {   x } ],
+   [ ['F','-','E'], 'E', ->(x,_,y) { x + y} ],
    [ ['F','+','E'], 'E', ->(x,_,y) { x + y} ],
-#   [ ['F','-','E'], 'E', ->(x,_,y) { x + y} ],
 
 =begin
    [ ['T','*','F'], 'T', ->(x,_,y) { x * y } ], 
@@ -72,7 +73,7 @@ def ParseLL(stack, tokens, i=0)
    rules = $grammar.select {|rule| (rule[1] == stack[-1]) && start_terms([ rule[0][0] ]).include?(tokens[i].value) }.reverse
 
    rules.each do |rule|
-      stack.pop 
+      old = stack.pop 
       stack.push( *rule[0].reverse )
 
       while ( !stack.empty? ) do
@@ -83,13 +84,18 @@ def ParseLL(stack, tokens, i=0)
                print "#{i}: ---------------------------------------------- TERM IS OK, moving forward #{tokens[i].value}\n"
                i = i + 1
             else
+               print "#{i}: ---------------------------------------------- TERM IS BAD NEXT IN TEXT [#{tokens[i].value}] NEXT IN RULE [#{stack[-1]}]\n"
                break
             end
          else
-            i = ParseLL( stack, tokens, i)
+            ii = ParseLL(stack, tokens, i)
+            if ( i == ii )
+                break
+            end
+            i = ii
          end
 
-         if ( i == tokens.size ) then
+         if (i == tokens.size) then
             print "FINITA: [#{rule[0]}] -> [#{rule[1]}]\n"
             return i
          end
@@ -98,7 +104,8 @@ def ParseLL(stack, tokens, i=0)
 
       stack, i = stackorig.clone, iorig
    end
-   return i
+
+   return i # return -1?
 end
 
 stack = ParseLL(['E'], tokens)
