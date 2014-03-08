@@ -70,43 +70,35 @@ $result = [['E']]
 def ParseLL(stack, tokens, i=0)
    stackorig, iorig = stack.clone, i
 
-   rules = $grammar.select {|rule| (rule[1] == stack[-1]) && start_terms([ rule[0][0] ]).include?(tokens[i].value) }.reverse
+   rules = $grammar.select {|rule| (rule[1] == stack[-1]) && start_terms([ rule[0][0] ])
+                   .include?(tokens[i].value) }
+                   .reverse
 
    rules.each do |rule|
       stack.pop 
       stack.push( *rule[0].reverse )
    
-      $result.push( rule[0] )
-      print "RESULT PSH: ", $result, "\n"
+      $result.push( rule[0] ); print "RESULT PSH: ", $result, "\n"
 
       while ( !stack.empty? ) do
          if is_term(stack[-1]) 
          then
             if ( stack[-1] == tokens[i].value ) then
                stack.pop
-               print "#{i}: ---------------------------------------------- TERM IS OK, moving forward #{tokens[i].value}\n"
                i = i + 1
             else
-               print "#{i}: ---------------------------------------------- TERM IS BAD NEXT IN TEXT [#{tokens[i].value}] NEXT IN RULE [#{stack[-1]}]\n"
-               $result.pop
-               print "RESULT PAP: ", $result, "\n"
+               $result.pop; print "RESULT PAP: ", $result, "\n"
                break
             end
          else
-            ii = ParseLL(stack, tokens, i)
-            if ( ii == -1 )
-                $result.pop
-                print "RESULT PUP: ", $result, "\n"
+            i = ParseLL(stack, tokens, i)
+            if ( i == -1 )
+                $result.pop; print "RESULT PUP: ", $result, "\n"
                 break
             end
-            i = ii
          end
 
-         if (i == tokens.size) then
-#            print "FINITA: [#{rule[0]}] -> [#{rule[1]}]\n"
-            return i
-         end
-        
+         return i if (i == tokens.size) 
       end
 
       stack, i = stackorig.clone, iorig
