@@ -65,8 +65,6 @@ def is_term(type)
    $grammar.select{|rule| rule[1] == type}.empty?
 end
 
-$i = 0
-
 $result = []
 
 def ParseLL(stack, tokens, i=0)
@@ -75,8 +73,9 @@ def ParseLL(stack, tokens, i=0)
    rules = $grammar.select {|rule| (rule[1] == stack[-1]) && start_terms([ rule[0][0] ]).include?(tokens[i].value) }.reverse
 
    rules.each do |rule|
-      old = stack.pop 
+      stack.pop 
       stack.push( *rule[0].reverse )
+   
       $result.push( rule[0] )
       print "RESULT PSH: ", $result, "\n"
 
