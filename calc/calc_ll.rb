@@ -5,7 +5,7 @@ Token = Struct.new(:type, :value, :ast);
 expr = "325+7*3+48"
 
 #expr = "123+45+6789"
-expr = "12-34+11"
+expr = "12-346+6789"
 tokens = expr.split('').map { |el| Token.new(el, el) } 
 
 $grammar = [
@@ -67,6 +67,8 @@ end
 
 $i = 0
 
+$result = []
+
 def ParseLL(stack, tokens, i=0)
    stackorig, iorig = stack.clone, i
 
@@ -75,6 +77,8 @@ def ParseLL(stack, tokens, i=0)
    rules.each do |rule|
       old = stack.pop 
       stack.push( *rule[0].reverse )
+      $result.push( rule[0] )
+      print "RESULT PSH: ", $result, "\n"
 
       while ( !stack.empty? ) do
          if is_term(stack[-1]) 
@@ -85,18 +89,22 @@ def ParseLL(stack, tokens, i=0)
                i = i + 1
             else
                print "#{i}: ---------------------------------------------- TERM IS BAD NEXT IN TEXT [#{tokens[i].value}] NEXT IN RULE [#{stack[-1]}]\n"
+               $result.pop
+               print "RESULT PAP: ", $result, "\n"
                break
             end
          else
             ii = ParseLL(stack, tokens, i)
             if ( ii == -1 )
+                $result.pop
+                print "RESULT PUP: ", $result, "\n"
                 break
             end
             i = ii
          end
 
          if (i == tokens.size) then
-            print "FINITA: [#{rule[0]}] -> [#{rule[1]}]\n"
+#            print "FINITA: [#{rule[0]}] -> [#{rule[1]}]\n"
             return i
          end
         
