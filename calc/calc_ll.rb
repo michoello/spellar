@@ -65,7 +65,7 @@ def is_term(type)
    $grammar.select{|rule| rule[1] == type}.empty?
 end
 
-$result = []
+$result = [['E']]
 
 def ParseLL(stack, tokens, i=0)
    stackorig, iorig = stack.clone, i
