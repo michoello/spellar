@@ -114,3 +114,17 @@ def ParseLL(stack, tokens, i=0)
 end
 
 stack = ParseLL(['E'], tokens)
+
+
+exit
+
+def do_shit
+   i = 1
+   while true do yield i; i += 1 end
+end
+
+do_shit do |v| 
+    print "ZZ: #{v}\n" 
+    break if v > 10
+end
+
