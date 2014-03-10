@@ -67,6 +67,34 @@ end
 
 $result = [['E']]
 
+def applyRule(stack, rule, tokens, i)
+   stack.pop 
+   stack.push( *rule.reverse )
+
+   $result.push( rule ); print "RESULT PSH: ", $result, "\n"
+
+   while ( i != -1 && !stack.empty? ) do
+      if is_term(stack[-1]) 
+      then
+         if ( stack[-1] == tokens[i].value ) then
+            stack.pop
+            i = i + 1
+         else
+            i = -1
+         end
+      else
+         i = ParseLL(stack, tokens, i)
+      end
+
+      return i if (i == tokens.size) 
+   end
+
+   $result.pop; print "RESULT PEP: ", $result, "\n"
+
+   return -1
+end
+
+
 def ParseLL(stack, tokens, i=0)
    stackorig, iorig = stack.clone, i
 
@@ -75,31 +103,14 @@ def ParseLL(stack, tokens, i=0)
                    .reverse
 
    rules.each do |rule|
-      stack.pop 
-      stack.push( *rule[0].reverse )
-   
-      $result.push( rule[0] ); print "RESULT PSH: ", $result, "\n"
+#      stack.pop 
+#      stack.push( *rule[0].reverse )
+#   
+#      $result.push( rule[0] ); print "RESULT PSH: ", $result, "\n"
 
-      while ( !stack.empty? ) do
-         if is_term(stack[-1]) 
-         then
-            if ( stack[-1] == tokens[i].value ) then
-               stack.pop
-               i = i + 1
-            else
-               $result.pop; print "RESULT PAP: ", $result, "\n"
-               break
-            end
-         else
-            i = ParseLL(stack, tokens, i)
-            if ( i == -1 )
-                $result.pop; print "RESULT PUP: ", $result, "\n"
-                break
-            end
-         end
+      i = applyRule(stack, rule[0], tokens, i)
 
-         return i if (i == tokens.size) 
-      end
+      return i if (i == tokens.size) 
 
       stack, i = stackorig.clone, iorig
    end
