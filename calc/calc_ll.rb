@@ -73,7 +73,7 @@ def applyRule(stack, rule, tokens, i)
 
    $result.push( rule ); print "RESULT PSH: ", $result, "\n"
 
-   while ( i != -1 && !stack.empty? ) do
+   while ( !stack.empty? ) do
       if is_term(stack[-1]) 
       then
          if ( stack[-1] == tokens[i].value ) then
@@ -85,7 +85,8 @@ def applyRule(stack, rule, tokens, i)
       else
          i = ParseLL(stack, tokens, i)
       end
-
+      
+      break if i == -1 
       return i if (i == tokens.size) 
    end
 
@@ -103,11 +104,6 @@ def ParseLL(stack, tokens, i=0)
                    .reverse
 
    rules.each do |rule|
-#      stack.pop 
-#      stack.push( *rule[0].reverse )
-#   
-#      $result.push( rule[0] ); print "RESULT PSH: ", $result, "\n"
-
       i = applyRule(stack, rule[0], tokens, i)
 
       return i if (i == tokens.size) 
