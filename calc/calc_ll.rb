@@ -86,7 +86,6 @@ def ParseLL(stack, tokens, i=0)
             if ( stack[-1] == tokens[i].value ) then
                stack.pop
                i = i + 1
-               return i
             else
                $result.pop; print "RESULT PAP: ", $result, "\n"
                break
@@ -102,13 +101,8 @@ def ParseLL(stack, tokens, i=0)
          return i if (i == tokens.size) 
       end
 
-      if $result.size > 1 then # TODO: why???
-         $result.pop; print "RESULT PIP: ", $result, "\n"
-      end
-
       stack, i = stackorig.clone, iorig
    end
-
    return -1 
 end
 
