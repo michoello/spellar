@@ -67,11 +67,11 @@ end
 
 def applyRule(tokens, rulezz)
     
-   stack, i, result,stack2 = rulezz
+   stack, i, result = rulezz
 
    print "CURRENT RESULT: ", result, "\n"
 
-   while ( !stack.empty? && i < tokens.size ) do
+   while ( !stack.empty? && i < tokens.size && i >= 0 ) do
       top = stack[-1]
       if is_term(top[0]) then
          if (top[0] == tokens[i].value ) then
@@ -83,8 +83,6 @@ def applyRule(tokens, rulezz)
       else
          i = ParseLL(stack, result, tokens, i)
       end
-      
-      break if i == -1
    end
 
    return i 
@@ -100,8 +98,7 @@ def ParseLL(stack, result, tokens, i=0)
                                  rlz = rule[0].map {|r| [r] }
                                  [ stack.clone.push(*rlz.reverse), 
                                    i,
-                                   result.clone.push(rlz) ,
-                                   stack.clone.push(rlz.reverse) 
+                                   result.clone.push(rlz)
                                  ] 
                    end
    i = -1
