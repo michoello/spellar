@@ -65,17 +65,16 @@ def is_term(type)
    $grammar.select{|rule| rule[1] == type}.empty?
 end
 
-#def applyRule(stack, rule, result, tokens, i)
 def applyRule(tokens, rulezz)
     
-   stack, rule, i, result = rulezz
+   stack, i, result,stack2 = rulezz
 
    print "CURRENT RESULT: ", result, "\n"
 
    while ( !stack.empty? && i < tokens.size ) do
-      if is_term(stack[-1]) 
-      then
-         if ( stack[-1] == tokens[i].value ) then
+      top = stack[-1]
+      if is_term(top[0]) then
+         if (top[0] == tokens[i].value ) then
             stack.pop
             i = i + 1
          else
@@ -95,12 +94,15 @@ end
 def ParseLL(stack, result, tokens, i=0)
    top = stack.pop 
 
-   rules = $grammar.select {|rule| (rule[1] == top) && start_terms([ rule[0][0] ])
+   rules = $grammar.select {|rule| (rule[1] == top[0]) && start_terms([ rule[0][0] ])
                    .include?(tokens[i].value) }
-                   .map do |rule| [ stack.clone.push(*rule[0].reverse), 
-                                   rule[0], 
+                   .map do |rule| 
+                                 rlz = rule[0].map {|r| [r] }
+                                 [ stack.clone.push(*rlz.reverse), 
                                    i,
-                                   result.clone.push(rule[0]) ] 
+                                   result.clone.push(rlz) ,
+                                   stack.clone.push(rlz.reverse) 
+                                 ] 
                    end
    i = -1
    while (!rules.empty? && i < tokens.size) do
@@ -110,6 +112,8 @@ def ParseLL(stack, result, tokens, i=0)
    return i 
 end
 
-stack = ParseLL(['E'], [['E']], tokens)
+init = [["E"]]
+
+stack = ParseLL(init, [init], tokens)
 
 
