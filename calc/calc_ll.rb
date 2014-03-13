@@ -65,9 +65,9 @@ def is_term(type)
    $grammar.select{|rule| rule[1] == type}.empty?
 end
 
-def applyRule(tokens, rulezz)
+def applyRule(tokens, todo)
     
-   stack, i, result = rulezz
+   stack, i, result = todo.pop
 
    print "CURRENT RESULT: ", result, "\n"
 
@@ -92,7 +92,7 @@ end
 def ParseLL(stack, result, tokens, i=0)
    top = stack.pop 
 
-   rules = $grammar.select {|rule| (rule[1] == top[0]) && start_terms([ rule[0][0] ])
+   todo = $grammar.select {|rule| (rule[1] == top[0]) && start_terms([ rule[0][0] ])
                    .include?(tokens[i].value) }
                    .map do |rule| 
                                  rlz = rule[0].map {|r| [r] }
@@ -102,8 +102,8 @@ def ParseLL(stack, result, tokens, i=0)
                                  ] 
                    end
    i = -1
-   while (!rules.empty? && i < tokens.size) do
-      i = applyRule(tokens, rules.pop) 
+   while (!todo.empty? && i < tokens.size) do
+      i = applyRule(tokens, todo) 
    end
 
    return i 
