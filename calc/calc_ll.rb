@@ -66,8 +66,6 @@ def is_term(type)
 end
 
 def applyRule(stack, rule, result, tokens, i)
-   stack.pop 
-   stack.push( *rule.reverse )
 
    result.push( rule ); print "RESULT PSH: ", result, "\n"
 
@@ -95,14 +93,18 @@ end
 
 
 def ParseLL(stack, result, tokens, i=0)
+   top = stack.pop 
    stackorig, iorig = stack.clone, i
 
-   rules = $grammar.select {|rule| (rule[1] == stack[-1]) && start_terms([ rule[0][0] ])
+   rules = $grammar.select {|rule| (rule[1] == top) && start_terms([ rule[0][0] ])
                    .include?(tokens[i].value) }
+                   .map { |rule| rule[0] }
                    .reverse
 
    rules.each do |rule|
-      i = applyRule(stack, rule[0], result, tokens, i)
+      stack.push( *rule.reverse )
+
+      i = applyRule(stack, rule, result, tokens, i)
 
       return i if (i == tokens.size) 
 
