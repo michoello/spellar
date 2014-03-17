@@ -90,10 +90,10 @@ end
 def ParseLL(tokens)
    init = [["E"]]
    i = 0
-   bigstack = [ get_todo(init, [init], tokens, i) ]
+   todo = [ get_todo(init, init, tokens, i) ]
 
-   until bigstack.empty? || i >= tokens.size
-      rules2apply = bigstack.pop
+   while !todo.empty? && i < tokens.size
+      rules2apply = todo.pop
 
       if !rules2apply.empty?  
          stack, i, result = rules2apply.pop
@@ -105,10 +105,10 @@ def ParseLL(tokens)
             i = i + 1
          end
 
-         bigstack.push( rules2apply + get_todo(stack, result, tokens, i) )
+         todo.push( rules2apply + get_todo(stack, result, tokens, i) )
       end
 
-   end # until bigstack.empty? || i >= tokens.size
+   end 
 end
 
 
