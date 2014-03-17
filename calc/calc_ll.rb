@@ -97,8 +97,6 @@ def ParseLL(tokens)
 
    begin 
       stack, result, i, rules2apply = $bigstack[-1]
-  
-      stack.pop
 
       if !rules2apply.empty?  
          stack, i, result = rules2apply.pop
