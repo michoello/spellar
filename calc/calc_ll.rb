@@ -83,9 +83,9 @@ end
 
 
 
-def ParseLL(stack, result, tokens, i)
+#def ParseLL(stack, result, tokens, i)
+def ParseLL()
  
- while true do
    stack, result, tokens, i = $bigstack[-1]
    
    todo = get_todo(stack, result, tokens, i)
@@ -94,9 +94,8 @@ def ParseLL(stack, result, tokens, i)
    while (!todo.empty? && i < tokens.size) do
       stack, i, result = todo.pop
 
-      print "CURRENT RESULT: ", result, "\n"
-
       while ( !stack.empty? && i < tokens.size && i >= 0 ) do
+         print "CURRENT RESULT: ", result, "\n"
 
          top = stack[-1]
          if is_term(top[0]) then
@@ -108,20 +107,20 @@ def ParseLL(stack, result, tokens, i)
             end
          else
             $bigstack.push( [stack, result, tokens, i] )
-#            next
-            i = ParseLL(stack, result, tokens, i)
+            i = ParseLL()
          end
       end
    end
 
-   return i 
+   $bigstack.pop
+   $bigstack[-1][3] = i unless $bigstack.empty?
 
- end
 end
 
 init = [["E"]]
 
 $bigstack.push( [init, [init], tokens, 0] )
-ParseLL(init, [init], tokens, 0)
+#ParseLL(init, [init], tokens, 0)
+ParseLL()
 
 
