@@ -84,6 +84,9 @@ end
 
 
 def ParseLL(stack, result, tokens, i)
+ 
+ while true do
+   stack, result, tokens, i = $bigstack[-1]
    
    todo = get_todo(stack, result, tokens, i)
 
@@ -105,16 +108,20 @@ def ParseLL(stack, result, tokens, i)
             end
          else
             $bigstack.push( [stack, result, tokens, i] )
+#            next
             i = ParseLL(stack, result, tokens, i)
          end
       end
    end
 
    return i 
+
+ end
 end
 
 init = [["E"]]
 
+$bigstack.push( [init, [init], tokens, 0] )
 ParseLL(init, [init], tokens, 0)
 
 
