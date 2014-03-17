@@ -92,15 +92,16 @@ def ParseLL()
    while (!todo.empty? && i < tokens.size) do
       stack, i, result = todo.pop
 
-      while ( !stack.empty? && i < tokens.size ) do
+      #while ( !stack.empty? && i < tokens.size ) do
+      if ( !stack.empty? && i < tokens.size ) do
          print "CURRENT RESULT: ", result, "\n"
 
          if is_term(stack[-1][0]) &&(stack[-1][0] == tokens[i].value ) then
             stack.pop
             i = i + 1
-            next
+#            next
          end
-         break
+#         break
       end
 
       $bigstack.push( [stack, result, tokens, i] )
