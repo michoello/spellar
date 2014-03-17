@@ -86,14 +86,13 @@ def term_onstack_and_its_ok(stack, tokens, i)
 end
 
 
-def ParseLL()
-   while !$bigstack.empty? 
+def ParseLL(tokens )
+   init = [["E"]]
+   $bigstack.push( [init, [init], tokens, 0, [] ] )
+   i = 0
 
+   begin 
       stack, result, tokens, i, rules2apply = $bigstack[-1]
-      if i >= tokens.size 
-         $bigstack[-1][3] = i 
-         return
-      end
    
       rules2apply = rules2apply + get_todo(stack, result, tokens, i)
 
@@ -108,18 +107,15 @@ def ParseLL()
 
          $bigstack.push( [stack, result, tokens, i, rules2apply] )
          next
-         ParseLL()
       end
 
       $bigstack.pop
       $bigstack[-1][3] = i unless $bigstack.empty?
-   end
 
+   end until $bigstack.empty? || i >= tokens.size
 end
 
-init = [["E"]]
 
-$bigstack.push( [init, [init], tokens, 0, [] ] )
-ParseLL()
+ParseLL(tokens)
 
 
