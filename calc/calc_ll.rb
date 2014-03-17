@@ -5,7 +5,7 @@ Token = Struct.new(:type, :value, :ast);
 expr = "325+7*3+48"
 
 expr = "12-346+6789"
-expr = "12-345"
+expr = "12-345+6"
 tokens = expr.split('').map { |el| Token.new(el, el) } 
 
 $grammar = [
@@ -107,13 +107,9 @@ def ParseLL(tokens )
          end
 
          $bigstack.push( [stack, result, tokens, i, rules2apply] )
-#         next
       else 
          $bigstack.pop
-         $bigstack[-1][3] = i unless $bigstack.empty?
-
       end
-
 
    end until $bigstack.empty? || i >= tokens.size
 end
