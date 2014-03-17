@@ -83,20 +83,20 @@ end
 
 
 def term_onstack_and_its_ok(stack, tokens, i)
-   !stack.empty? && i < tokens.size && is_term(stack[-1][0]) &&(stack[-1][0] == tokens[i].value)
+   !stack.empty? && i < tokens.size && is_term(stack[-1][0]) && (stack[-1][0] == tokens[i].value)
 end
 
 
 def ParseLL(tokens)
    init = [["E"]]
    i = 0
-   todo = [ get_todo(init, init, tokens, i) ]
+   branches = [ get_todo(init, init, tokens, i) ]
 
-   while !todo.empty? && i < tokens.size
-      rules2apply = todo.pop
+   while !branches.empty? && i < tokens.size
+      rulesstack = branches.pop
 
-      if !rules2apply.empty?  
-         stack, i, result = rules2apply.pop
+      if !rulesstack.empty?  
+         stack, i, result = rulesstack.pop
 
          print "CURRENT RESULT: ", result, "\n"
 
@@ -105,7 +105,7 @@ def ParseLL(tokens)
             i = i + 1
          end
 
-         todo.push( rules2apply + get_todo(stack, result, tokens, i) )
+         branches.push( rulesstack + get_todo(stack, result, tokens, i) )
       end
 
    end 
