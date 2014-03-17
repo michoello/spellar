@@ -93,11 +93,9 @@ def ParseLL(tokens)
    bigstack = [ get_todo(init, [init], tokens, i) ]
 
    until bigstack.empty? || i >= tokens.size
-      rules2apply = bigstack[-1]
+      rules2apply = bigstack.pop
 
-      if rules2apply.empty?  
-         bigstack.pop
-      else
+      if !rules2apply.empty?  
          stack, i, result = rules2apply.pop
 
          print "CURRENT RESULT: ", result, "\n"
