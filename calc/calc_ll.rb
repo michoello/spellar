@@ -65,10 +65,11 @@ def is_term(type)
    $grammar.select{|rule| rule[1] == type}.empty?
 end
 
-def ParseLL(stack, result, tokens, i)
-   top = stack.pop 
+$bigstack = []
 
-   todo = $grammar.select {|rule| (rule[1] == top[0]) && start_terms([ rule[0][0] ])
+def get_todo(stack, result, tokens,i)
+   top = stack.pop 
+   $grammar.select {|rule| (rule[1] == top[0]) && start_terms([ rule[0][0] ])
                    .include?(tokens[i].value) }
                    .map do |rule| 
                                  rlz = rule[0].map {|r| [r] }
@@ -77,6 +78,15 @@ def ParseLL(stack, result, tokens, i)
                                    result.clone.push(rlz)
                                  ] 
                    end
+end
+
+
+
+
+def ParseLL(stack, result, tokens, i)
+   
+   todo = get_todo(stack, result, tokens, i)
+
    i = -1
    while (!todo.empty? && i < tokens.size) do
       stack, i, result = todo.pop
@@ -94,6 +104,7 @@ def ParseLL(stack, result, tokens, i)
                i = -1
             end
          else
+            $bigstack.push( [stack, result, tokens, i] )
             i = ParseLL(stack, result, tokens, i)
          end
       end
