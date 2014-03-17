@@ -100,17 +100,20 @@ def ParseLL(tokens )
          stack, i, result = rules2apply.pop
 
          print "CURRENT RESULT: ", result, "\n"
+
          while term_onstack_and_its_ok(stack, tokens, i)
             stack.pop
             i = i + 1
          end
 
          $bigstack.push( [stack, result, tokens, i, rules2apply] )
-         next
+#         next
+      else 
+         $bigstack.pop
+         $bigstack[-1][3] = i unless $bigstack.empty?
+
       end
 
-      $bigstack.pop
-      $bigstack[-1][3] = i unless $bigstack.empty?
 
    end until $bigstack.empty? || i >= tokens.size
 end
