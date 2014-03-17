@@ -67,13 +67,18 @@ end
 
 $bigstack = []
 
-def get_todo(stack, result, tokens,i)
-   top = stack.pop 
+def get_todo(stack, result, tokens, i)
+   return [] if i >= tokens.size
+   return [] if stack.empty?
+  
+   #top = stack.pop 
+   top = stack[-1]
+#   stack.pop
    $grammar.select {|rule| (rule[1] == top[0]) && start_terms([ rule[0][0] ])
                    .include?(tokens[i].value) }
                    .map do |rule| 
                                  rlz = rule[0].map {|r| [r] }
-                                 [ stack.clone.push(*rlz.reverse), 
+                                 [ stack[0..-2].clone.push(*rlz.reverse), 
                                    i,
                                    result.clone.push(rlz)
                                  ] 
@@ -88,14 +93,17 @@ end
 
 def ParseLL(tokens)
    init = [["E"]]
-   $bigstack.push( [init, [init], 0, [] ] )
+   $bigstack.push( [init, [init], 0, [], get_todo(init, [init], tokens, 0) ] )
    i = 0
    result = [init]
 
    begin 
-      stack, result, i, rules2apply = $bigstack[-1]
-   
-      rules2apply = rules2apply + get_todo(stack, result, tokens, i)
+      stack, result, i, rules2apply, bzzz = $bigstack[-1]
+  
+      rules2apply = rules2apply + bzzz 
+#      rules2apply = rules2apply + get_todo(stack, result, tokens, i)
+#      print "SHUB: ", get_todo(stack,result,tokens,i), "\n"
+      stack.pop
 
       if !rules2apply.empty?  
          stack, i, result = rules2apply.pop
@@ -107,7 +115,9 @@ def ParseLL(tokens)
             i = i + 1
          end
 
-         $bigstack.push( [stack, result, i, rules2apply] )
+ #        print "HABA: ", get_todo(stack,result,tokens,i), "\n"
+
+         $bigstack.push( [stack, result, i, rules2apply, get_todo(stack, result, tokens, i)] )
       else 
          $bigstack.pop
       end
