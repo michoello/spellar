@@ -65,8 +65,6 @@ def is_term(type)
    $grammar.select{|rule| rule[1] == type}.empty?
 end
 
-$bigstack = []
-
 def get_todo(stack, result, tokens, i)
    return [] if i >= tokens.size
    return [] if stack.empty?
@@ -91,13 +89,14 @@ end
 
 def ParseLL(tokens)
    init = [["E"]]
-   $bigstack.push( get_todo(init, [init], tokens, 0) )
+   i = 0
+   bigstack = [ get_todo(init, [init], tokens, i) ]
 
-   begin 
-      rules2apply = $bigstack[-1]
+   until bigstack.empty? || i >= tokens.size
+      rules2apply = bigstack[-1]
 
       if rules2apply.empty?  
-         $bigstack.pop
+         bigstack.pop
       else
          stack, i, result = rules2apply.pop
 
@@ -108,10 +107,10 @@ def ParseLL(tokens)
             i = i + 1
          end
 
-         $bigstack.push( rules2apply + get_todo(stack, result, tokens, i) )
+         bigstack.push( rules2apply + get_todo(stack, result, tokens, i) )
       end
 
-   end until $bigstack.empty? || i >= tokens.size
+   end # until bigstack.empty? || i >= tokens.size
 end
 
 
