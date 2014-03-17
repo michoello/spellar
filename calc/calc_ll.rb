@@ -93,8 +93,6 @@ def ParseLL(tokens)
    init = [["E"]]
    $bigstack.push( [0, get_todo(init, [init], tokens, 0) ] )
 
-   i = 0
-
    begin 
       i, rules2apply = $bigstack[-1]
 
