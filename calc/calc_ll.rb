@@ -89,13 +89,13 @@ end
 def ParseLL()
 
    return -1 if $bigstack.empty? 
-   stack, result, tokens, i = $bigstack[-1]
+   stack, result, tokens, i, rules2apply = $bigstack[-1]
    return i if i >= tokens.size
    
-   todo = get_todo(stack, result, tokens, i)
+   rules2apply = get_todo(stack, result, tokens, i) #if rules2apply.empty?
 
-   while (!todo.empty? && i < tokens.size) do
-      stack, i, result = todo.pop
+   while (!rules2apply.empty? && i < tokens.size) do
+      stack, i, result = rules2apply.pop
 
       print "CURRENT RESULT: ", result, "\n"
       while(term_onstack_and_its_ok(stack, tokens, i)) do
@@ -103,7 +103,7 @@ def ParseLL()
          i = i + 1
       end
 
-      $bigstack.push( [stack, result, tokens, i] )
+      $bigstack.push( [stack, result, tokens, i, rules2apply.clone] )
       i = ParseLL()
    end
 
@@ -115,7 +115,7 @@ end
 
 init = [["E"]]
 
-$bigstack.push( [init, [init], tokens, 0] )
+$bigstack.push( [init, [init], tokens, 0, [] ] )
 #ParseLL(init, [init], tokens, 0)
 ParseLL()
 
