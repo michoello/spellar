@@ -87,27 +87,27 @@ end
 
 
 def ParseLL()
-   if !$bigstack.empty? 
+   while !$bigstack.empty? 
 
       stack, result, tokens, i, rules2apply = $bigstack[-1]
-      if i >= tokens.size then
+      if i >= tokens.size 
          $bigstack[-1][3] = i 
          return
       end
    
       rules2apply = rules2apply + get_todo(stack, result, tokens, i)
 
-      if (!rules2apply.empty? ) then
+      if !rules2apply.empty?  
          stack, i, result = rules2apply.pop
 
          print "CURRENT RESULT: ", result, "\n"
-         while(term_onstack_and_its_ok(stack, tokens, i)) do
+         while term_onstack_and_its_ok(stack, tokens, i)
             stack.pop
             i = i + 1
          end
 
          $bigstack.push( [stack, result, tokens, i, rules2apply] )
-#         next
+         next
          ParseLL()
       end
 
