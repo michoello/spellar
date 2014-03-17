@@ -80,6 +80,12 @@ def get_todo(stack, result, tokens,i)
                    end
 end
 
+
+def term_onstack_and_its_ok(stack, tokens, i)
+   !stack.empty? && i < tokens.size && is_term(stack[-1][0]) &&(stack[-1][0] == tokens[i].value)
+end
+
+
 def ParseLL()
 
    return -1 if $bigstack.empty? 
@@ -92,14 +98,9 @@ def ParseLL()
       stack, i, result = todo.pop
 
       print "CURRENT RESULT: ", result, "\n"
-      while ( !stack.empty? && i < tokens.size ) do
-
-         if is_term(stack[-1][0]) &&(stack[-1][0] == tokens[i].value ) then
-            stack.pop
-            i = i + 1
-            next
-         end
-         break
+      while(term_onstack_and_its_ok(stack, tokens, i)) do
+         stack.pop
+         i = i + 1
       end
 
       $bigstack.push( [stack, result, tokens, i] )
