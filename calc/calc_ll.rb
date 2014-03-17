@@ -91,12 +91,12 @@ end
 
 def ParseLL(tokens)
    init = [["E"]]
-   $bigstack.push( [init, [init], 0, get_todo(init, [init], tokens, 0) ] )
+   $bigstack.push( [0, get_todo(init, [init], tokens, 0) ] )
 
    i = 0
 
    begin 
-      stack, result, i, rules2apply = $bigstack[-1]
+      i, rules2apply = $bigstack[-1]
 
       if !rules2apply.empty?  
          stack, i, result = rules2apply.pop
@@ -108,7 +108,7 @@ def ParseLL(tokens)
             i = i + 1
          end
 
-         $bigstack.push( [stack, result, i, rules2apply + get_todo(stack, result, tokens, i)] )
+         $bigstack.push( [i, rules2apply + get_todo(stack, result, tokens, i)] )
       else 
          $bigstack.pop
       end
