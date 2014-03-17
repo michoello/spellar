@@ -94,7 +94,8 @@ def ParseLL()
    
    rules2apply = get_todo(stack, result, tokens, i) #if rules2apply.empty?
 
-   while (!rules2apply.empty? && i < tokens.size) do
+   #while (!rules2apply.empty? && i < tokens.size) do
+   while (!rules2apply.empty? ) do
       stack, i, result = rules2apply.pop
 
       print "CURRENT RESULT: ", result, "\n"
@@ -103,8 +104,10 @@ def ParseLL()
          i = i + 1
       end
 
-      $bigstack.push( [stack, result, tokens, i, rules2apply.clone] )
+      $bigstack.push( [stack, result, tokens, i, rules2apply] )
       i = ParseLL()
+
+      break if i >= tokens.size
    end
 
    $bigstack.pop
