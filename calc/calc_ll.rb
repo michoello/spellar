@@ -66,9 +66,7 @@ def is_term(type)
 end
 
 def get_todo(stack, result, tokens, i)
-   return [] if i >= tokens.size
-   return [] if stack.empty?
-  
+   return [] if i >= tokens.size || stack.empty?
    top = stack[-1]
    $grammar.select {|rule| (rule[1] == top[0]) && start_terms([ rule[0][0] ])
                    .include?(tokens[i].value) }
@@ -111,7 +109,4 @@ def ParseLL(tokens)
    end 
 end
 
-
 ParseLL(tokens)
-
-
