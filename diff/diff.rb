@@ -3,7 +3,7 @@ require 'digest/md5'
 $cache = {}
 
 class Diff
-   def self.diff_impl(a,b)
+   def self.diff_impl(a,b,firstel = [])
      
       key = Digest::MD5.hexdigest(a.to_s + " " + b.to_s) 
       return $cache[key].clone if $cache.has_key? key
@@ -17,24 +17,31 @@ class Diff
       if r.empty?
          plus = a[0] == b[0] ? 0 : 2
 
-         c = [ diff_impl(a[1..as-1], b[1..bs-1]),
-               diff_impl(a[0..as-1], b[1..bs-1]),
-               diff_impl(a[1..as-1], b[0..bs-1]) ]
-         c[0][0] += plus 
-         c[1][0] += 1
-         c[2][0] += 1
+         bzz = plus==0 ? [a[0]] : [a[0] + '/' + b[0]]
+
+         r0 = diff_impl(a[1..as-1], b[1..bs-1], bzz)
+         r1 = diff_impl(a[0..as-1], b[1..bs-1], ["+"+b[0]])
+         r2 = diff_impl(a[1..as-1], b[0..bs-1], ["-"+a[0]])
+
+         r0[0] += plus 
+         r1[0] += 1
+         r2[0] += 1
  
 
-         c[0][1] = (plus==0 ? [a[0]] : [a[0] + '/' + b[0]]) + c[0][1]
-         c[1][1] = ["+"+b[0]] + c[1][1]
-         c[2][1] = ["-"+a[0]] + c[2][1]
+         r0[1] = (plus==0 ? [a[0]] : [a[0] + '/' + b[0]]) + r0[1]
+         r1[1] = ["+"+b[0]] + r1[1]
+         r2[1] = ["-"+a[0]] + r2[1]
 
-         a01 = c[0][0] <= c[1][0]
+         a01 = r0[0] <= r1[0]
 
-         r = c[2] 
-         r = c[0] if  a01 && (c[0][0] <= c[2][0])
-         r = c[1] if !a01 && (c[1][0] <= c[2][0])
+         r = r2 
+         r = r0 if  a01 && (r0[0] <= r2[0])
+         r = r1 if !a01 && (r1[0] <= r2[0])
+
       end
+       
+#      r[1] = firstel + r[1] unless firstel == [] 
+
 
       $cache[key] = r.clone
       r
