@@ -15,32 +15,35 @@ class Diff
       r = [b.size, b.map{|x| "+"+x}] if as == 0
 
       if r.empty?
-         plus = a[0] == b[0] ? 0 : 2
 
-         bzz = plus==0 ? [a[0]] : [a[0] + '/' + b[0]]
+         r1 = diff_impl(a[0..as-1], b[1..bs-1])
+         r2 = diff_impl(a[1..as-1], b[0..bs-1])
 
-         r0 = diff_impl(a[1..as-1], b[1..bs-1], bzz)
-         r1 = diff_impl(a[0..as-1], b[1..bs-1], ["+"+b[0]])
-         r2 = diff_impl(a[1..as-1], b[0..bs-1], ["-"+a[0]])
-
-         r0[0] += plus 
          r1[0] += 1
          r2[0] += 1
- 
 
-         r0[1] = (plus==0 ? [a[0]] : [a[0] + '/' + b[0]]) + r0[1]
+         
+         r3 = diff_impl(a[1..as-1], b[1..bs-1])
+         plus = a[0] == b[0] ? 0 : 2
+         r3[0] += plus 
+         r3[1] = (plus==0 ? [a[0]] : [a[0] + '/' + b[0]]) + r3[1]
+
          r1[1] = ["+"+b[0]] + r1[1]
          r2[1] = ["-"+a[0]] + r2[1]
 
-         a01 = r0[0] <= r1[0]
+
+
+         a01 = r3[0] <= r1[0]
 
          r = r2 
-         r = r0 if  a01 && (r0[0] <= r2[0])
+         r = r3 if  a01 && (r3[0] <= r2[0])
          r = r1 if !a01 && (r1[0] <= r2[0])
+
+
 
       end
        
-#      r[1] = firstel + r[1] unless firstel == [] 
+      #r[1] = [firstel] + r[1] unless firstel == [] 
 
 
       $cache[key] = r.clone
