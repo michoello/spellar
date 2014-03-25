@@ -60,20 +60,19 @@ class Diff2
 
       until rs.empty? do
          newrr = []
-         rs.map do |r|
+         newrr2 = rs.map do |r|
             price, aa, bb, way = r.values
-         
-            print "OLD: [#{price}] [#{aa}] [#{bb}] [#{way}]\n"
-
             as, bs = aa.size, bb.size
 
             if as == 0 && bs == 0
-               print "This is it!\n" 
-               break
+               return way
             end
+            
+            brr = []
 
             if bs > 0
                newrr << Cand.new(price + 1, aa[0..as-1], bb[1..bs-1], way + [ "+" + bb[0] ])
+               brr << Cand.new(price + 1, aa[0..as-1], bb[1..bs-1], way + [ "+" + bb[0] ])
             end
             if as > 0
                newrr << Cand.new(price + 1, aa[1..as-1], bb[0..bs-1], way + [ "-" + aa[0] ])
@@ -81,18 +80,10 @@ class Diff2
             if as > 0 && bs > 0 &&  aa[0] == bb[0]
                newrr << Cand.new( price, aa[1..as-1], bb[1..bs-1], way + [ aa[0] ])
             end
-         end
 
-         newrr.sort! { |x,y| x.price <=> y.price }
-         newrr = newrr[0..100]
+         end.flatten
 
-         newrr.map do |r|
-            price, aa, bb, way = r.values
-            print "\tNEW: #{price} #{aa} #{bb} #{way}\n"
-         end
-         print "\n"
-
-         rs = newrr
+         rs = newrr.sort{ |x,y| x.price <=> y.price }[0..100]
       end
 
    end
