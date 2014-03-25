@@ -16,18 +16,19 @@ class Diff
 
       if r.empty?
 
-         r1 = diff_impl(a[0..as-1], b[1..bs-1])
-         r2 = diff_impl(a[1..as-1], b[0..bs-1])
+         r = diff_impl(a[0..as-1], b[1..bs-1])
+         r = [ r[0]+1, ["+"+b[0]] + r[1] ]
 
-         r1 = [ r1[0]+1, ["+"+b[0]] + r1[1] ]
+         r2 = diff_impl(a[1..as-1], b[0..bs-1])
          r2 = [ r2[0]+1, ["-"+a[0]] + r2[1] ]
 
-         r = r1[0] < r2[0] ? r1 : r2
+         r = r2 if r2[0] < r[0] 
 
          if a[0] == b[0]
-            r3 = diff_impl(a[1..as-1], b[1..bs-1])
-            r3[1] =  [a[0]] + r3[1]
-            r = r3[0] < r[0] ? r3 : r
+            r2 = diff_impl(a[1..as-1], b[1..bs-1])
+            r2[1] =  [a[0]] + r2[1]
+
+            r = r2 if r2[0] < r[0] 
          end
       end
        
