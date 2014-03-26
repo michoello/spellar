@@ -11,7 +11,7 @@ class Array
 end
 
 # w is amount of lines surrounding modified parts, a and b are compared arrays
-def diff(w,a,b)
+def diff(a,b,w)
    as, bs, rs = a.size, b.size, [ Cand.new(0, 0, 0, []) ]
 
    until rs.empty? do
@@ -28,6 +28,7 @@ def diff(w,a,b)
                   "+ " + (x.i+1).to_s + " " + b[x.i]
                end
             end.chunk{|x| x}.map(&:first) # uniq adjacent
+               .join("")
          end
           
          rs1 = []
@@ -41,4 +42,4 @@ def diff(w,a,b)
 end
 
 a, b = IO.readlines(ARGV[0]), IO.readlines(ARGV[1])
-print diff(4, a, b).join("")
+print diff(a, b, 4)
