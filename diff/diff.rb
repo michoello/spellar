@@ -11,7 +11,7 @@ class Array
 end
 
 # w is amount of lines surrounding modified parts, a and b are compared arrays
-def diff(a,b,w)
+def diff(a, b, f, w)
    as, bs, rs = a.size, b.size, [ Cand.new(0, 0, 0, []) ]
 
    until rs.empty? do
@@ -37,9 +37,9 @@ def diff(a,b,w)
          rs1 << Cand.new(price,   ai+1, bi+1, diff + [Res.new( 0, ai, 0)]) if ai < as && bi < bs && a[ai] == b[bi]
          rs1
 
-      end.flatten.sort{|x,y| x.price <=> y.price}[0..20]
+      end.flatten.sort{|x,y| x.price <=> y.price}[0..f]
    end
 end
 
 a, b = IO.readlines(ARGV[0]), IO.readlines(ARGV[1])
-print diff(a, b, 4)
+print diff(a, b, 20, 4)
